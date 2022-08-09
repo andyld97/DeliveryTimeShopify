@@ -151,8 +151,11 @@ namespace DeliveryTimeShopify
                     }
                 }
 
+                bool needsToRefresh = false;
+
                 if (exponge)
                 {
+                    needsToRefresh = true;
                     await inbox.ExpungeAsync();
 
                     // Order orders :)
@@ -162,8 +165,22 @@ namespace DeliveryTimeShopify
                     Orders.Clear();
                     Orders.AddRange(ordersWithoutNode);
                     Orders.AddRange(oderedOrders);
-                    Dispatcher.Invoke(() => Refresh());
                 }
+
+                // Check for any orders which are not this day anymore
+                int day = DateTime.Now.Day;
+                lock (Orders)
+                {
+                    var oldOrders = Orders.Where(p => p.CreatedAt.Date.Day != day).ToList();
+                    if (oldOrders.Count > 0)
+                        needsToRefresh = true;
+
+                    foreach (var order in oldOrders)
+                        Orders.Remove(order);
+                }
+
+                if (needsToRefresh)
+                    Dispatcher.Invoke(() => Refresh());
             }
             catch (Exception ex)
             {
