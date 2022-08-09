@@ -11,7 +11,7 @@ namespace DeliveryTimeShopify
     {
         private static readonly Mutex AppMutex = new Mutex(false, "06f86505-ab66-4d1f-82cc-10b4c4cb5392");
 
-        private async void Application_Startup(object sender, StartupEventArgs e)
+        private void Application_Startup(object sender, StartupEventArgs e)
         {
             if (!AppMutex.WaitOne(TimeSpan.FromSeconds(1), false))
             {

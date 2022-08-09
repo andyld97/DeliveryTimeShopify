@@ -24,7 +24,7 @@ VersionInfoVersion={#MyAppVersion}
 PrivilegesRequired=lowest
 OutputDir=bin\Release\net6.0-windows\publish\
 OutputBaseFilename=DeliveryTimeShopify-Setup
-SetupIconFile=C:\Users\andre\source\repos\DeliveryTimeShopify\DeliveryTimeShopify\icon.ico
+SetupIconFile=icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -40,17 +40,21 @@ Name: "StartMenuEntry" ; Description: "Start my app when Windows starts" ; Group
 
 [Files]
 Source: "bin\Release\net6.0-windows\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Release\net6.0-windows\publish\Bestellung-Lieferzeit.deps.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Release\net6.0-windows\publish\Bestellung-Lieferzeit.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Release\net6.0-windows\publish\Bestellung-Lieferzeit.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Release\net6.0-windows\publish\Bestellung-Lieferzeit.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Release\net6.0-windows\publish\Bestellung-Lieferzeit.runtimeconfig.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "bin\Release\net6.0-windows\publish\BouncyCastle.Crypto.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\net6.0-windows\publish\DeliveryTimeShopify.deps.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\net6.0-windows\publish\DeliveryTimeShopify.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\net6.0-windows\publish\DeliveryTimeShopify.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\net6.0-windows\publish\DeliveryTimeShopify.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\net6.0-windows\publish\DeliveryTimeShopify.runtimeconfig.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "bin\Release\net6.0-windows\publish\HtmlAgilityPack.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Release\net6.0-windows\publish\Newtonsoft.JSON.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "bin\Release\net6.0-windows\publish\MailKit.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "bin\Release\net6.0-windows\publish\MimeKit.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\net6.0-windows\publish\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "bin\Release\net6.0-windows\publish\System.Xml.XPath.XmlDocument.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\net6.0-windows\publish\de\*"; DestDir: "{app}\de"; Flags: ignoreversion recursesubdirs createallsubdirs
+; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+
+
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
