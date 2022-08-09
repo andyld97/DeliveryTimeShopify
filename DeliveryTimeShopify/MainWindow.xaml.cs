@@ -35,27 +35,33 @@ namespace DeliveryTimeShopify
         public static readonly List<Order> Orders = new List<Order>();
         public static readonly List<string> FinishedIDs = new List<string>();
 
+        private bool wasConnectedAlready = false;
+        private bool isCurrentlyWorking = false;
+
         public MainWindow()
         {
             InitializeComponent();
             SetState(false);
 
-
 #if DEBUG
-            Orders.Add(new Order() { AdditionalNote = "", IsShipping = false });
-            Orders.Add(new Order() { AdditionalNote = "", IsShipping = false });
-            Orders.Add(new Order() { AdditionalNote = "", IsShipping = false });
-            Orders.Add(new Order() { AdditionalNote = "A note 1", IsShipping = true });
-            Orders.Add(new Order() { AdditionalNote = "A note 2", IsShipping = true });
-#endif
+            // Sample data for testing
+            var now = DateTime.Now;
+            List<Order> temp = new List<Order>();
+            temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Max Mustermann" }, AdditionalNote = "", IsShipping = false, CreatedAt = now });
+            temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Marlene Musterfrau" }, AdditionalNote = "", IsShipping = false, CreatedAt = now.AddMinutes(-10) });
+            temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Dieter XYZ" }, AdditionalNote = "", IsShipping = false, CreatedAt = now.AddMinutes(-20) });
+            
+            temp = temp.OrderBy(p => p.CreatedAt).ToList();
+            temp.Add(new Order() { ShippingAdress = new Address() { FirstName = "Max Mustermann" }, AdditionalNote = "A note 1", IsShipping = true, CreatedAt = now.AddHours(-1) });
+            temp.Add(new Order() { ShippingAdress = new Address() { FirstName = "Marlene Musterfrau" }, AdditionalNote = "A note 2", IsShipping = true, CreatedAt = now.AddHours(-2) });
 
+            Orders.AddRange(temp);
             Refresh();
+#endif
 
             dispatcherTimer.Interval = TimeSpan.FromSeconds(60);
             dispatcherTimer.Tick += DispatcherTimer_Tick;
-            dispatcherTimer.Start();
-
-            DispatcherTimer_Tick(this, null);
+            dispatcherTimer.Start();             
 
             // Move window to the right of the screen
             var dpi = VisualTreeHelper.GetDpi(this);
@@ -64,106 +70,127 @@ namespace DeliveryTimeShopify
             Height = WpfScreen.Primary.WorkingArea.Height / dpi.DpiScaleY;
         }
 
-        private async void DispatcherTimer_Tick(object? sender, EventArgs e)
+        private async Task FetchParseAndDisplayMails()
         {
             try
             {
-                lock (sync)
-                {
-                    Logger.LogInfo(Properties.Resources.strLookingForUnreadMails);
-                    bool found = false;
+                Logger.LogInfo(Properties.Resources.strLookingForUnreadMails);
 
-                    if (!client.IsAuthenticated || !client.IsConnected)
-                    {
+                if (!client.IsAuthenticated || !client.IsConnected)
+                {
+                    if (wasConnectedAlready)
                         Logger.LogWarning(Properties.Resources.strMailClientIsNotConnectedAnymore);
 
-                        try
-                        {
-                            client = new ImapClient();
-                            client.Connect(Config.Instance.IngoingMailAuth.ImapServer, Config.Instance.IngoingMailAuth.ImapPort, true);
-                            client.Authenticate(Config.Instance.IngoingMailAuth.MailAddress, Config.Instance.IngoingMailAuth.Password);
-
-                            // The Inbox folder is always available on all IMAP servers...
-                            inbox = client.Inbox;
-
-                            Logger.LogInfo(Properties.Resources.strConnectionEstablishedSuccess, sendWebHook: true);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.LogError(Properties.Resources.strFailedToConnect, ex);
-                            return;
-                        }
-                    }
-
-                    inbox.Open(FolderAccess.ReadWrite);
-
-                    bool exponge = false;
-
-                    foreach (var uid in inbox.Search(SearchQuery.NotSeen))
+                    try
                     {
-                        var message = inbox.GetMessage(uid);
-                        string subject = message.Subject.ToLower();
+                        client = new ImapClient();
+                        await client.ConnectAsync(Config.Instance.IngoingMailAuth.ImapServer, Config.Instance.IngoingMailAuth.ImapPort, true);
+                        await client.AuthenticateAsync(Config.Instance.IngoingMailAuth.MailAddress, Config.Instance.IngoingMailAuth.Password);
 
-                        if (Config.Instance.Filter.Any(f => subject.Contains(f.ToLower())))
+                        // The Inbox folder is always available on all IMAP servers...
+                        inbox = client.Inbox;
+
+                        Logger.LogInfo(Properties.Resources.strConnectionEstablishedSuccess, sendWebHook: wasConnectedAlready);
+
+                        if (!wasConnectedAlready)
+                            wasConnectedAlready = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(Properties.Resources.strFailedToConnect, ex);
+                        return;
+                    }
+                }
+
+                inbox.Open(FolderAccess.ReadWrite);
+
+                bool exponge = false;
+
+                foreach (var uid in await inbox.SearchAsync(SearchQuery.NotSeen))
+                {
+                    var message = inbox.GetMessage(uid);
+                    string subject = message.Subject.ToLower();
+
+                    if (Config.Instance.Filter.Any(f => subject.Contains(f.ToLower())))
+                    {
+                        string htmlContent = message.HtmlBody;
+
+                        HtmlDocument htmlDocument = new HtmlDocument();
+                        htmlDocument.LoadHtml(htmlContent);
+
+                        var node = htmlDocument.DocumentNode.SelectNodes(JSON_XPATH).FirstOrDefault();
+
+                        if (node == null)
                         {
-                            string htmlContent = message.HtmlBody;
-
-                            HtmlDocument htmlDocument = new HtmlDocument();
-                            htmlDocument.LoadHtml(htmlContent);
-
-                            var node = htmlDocument.DocumentNode.SelectNodes(JSON_XPATH).FirstOrDefault();
-
-                            if (node == null)
-                            {
-                                inbox.SetFlags(uid, MessageFlags.Deleted, true);
-                                exponge = true;
-                                continue;
-                            }
-
-                            string json = HttpUtility.HtmlDecode(node.InnerText).Trim();
-                            var order = MailHelper.ParseMail(json);
-                            if (order == null)
-                                continue;
-
-                            // Check if this order should be added or not ...
-                            lock (Orders)
-                            {
-                                if (!Orders.Any(p => p.Id == order.Id) && !FinishedIDs.Any(i => i == order.Id))
-                                {
-                                    var now = DateTime.Now;
-                                    if (order.CreatedAt.Day == now.Day)
-                                        Orders.Add(order);
-                                }
-                            }
-
-                            // ... but in anyway the mail can be marked as deleted now
                             inbox.SetFlags(uid, MessageFlags.Deleted, true);
                             exponge = true;
+                            continue;
                         }
-                    }
 
-                    if (exponge)
-                    {
-                        inbox.Expunge();
+                        string json = HttpUtility.HtmlDecode(node.InnerText).Trim();
+                        var order = MailHelper.ParseMail(json);
+                        if (order == null)
+                            continue;
 
-                        // Order orders :)
+                        // Check if this order should be added or not ...
                         lock (Orders)
                         {
-                            var ordersWithoutNode = Orders.Where(p => !string.IsNullOrEmpty(p.AdditionalNote)).ToList();
-                            var oderedOrders = Orders.Where(p => string.IsNullOrEmpty(p.AdditionalNote)).OrderBy(p => p.CreatedAt).ToList();
-
-                            Orders.Clear();
-                            Orders.AddRange(oderedOrders);
-                            Orders.AddRange(ordersWithoutNode);
+                            if (!Orders.Any(p => p.Id == order.Id) && !FinishedIDs.Any(i => i == order.Id))
+                            {
+                                var now = DateTime.Now;
+                                if (order.CreatedAt.Day == now.Day)
+                                    Orders.Add(order);
+                            }
                         }
 
-                        Refresh();
+                        // ... but in anyway the mail can be marked as deleted now
+                        inbox.SetFlags(uid, MessageFlags.Deleted, true);
+                        exponge = true;
                     }
+                }
+
+                if (exponge)
+                {
+                    await inbox.ExpungeAsync();
+
+                    // Order orders :)
+                    var oderedOrders = Orders.Where(p => string.IsNullOrEmpty(p.AdditionalNote)).OrderBy(p => p.CreatedAt).ToList();
+                    var ordersWithoutNode = Orders.Where(p => !string.IsNullOrEmpty(p.AdditionalNote)).OrderBy(p => p.CreatedAt).ToList();
+
+                    Orders.Clear();
+                    Orders.AddRange(oderedOrders);
+                    Orders.AddRange(ordersWithoutNode);
+                    Dispatcher.Invoke(() => Refresh());
                 }
             }
             catch (Exception ex)
             {
                 Logger.LogError("Failed to get e-mails", ex);
+            }
+        }
+
+        #region GUI Events
+
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            await FetchParseAndDisplayMails().ConfigureAwait(false);
+        }
+
+        private async void DispatcherTimer_Tick(object? sender, EventArgs e)
+        {
+            lock (sync)
+            {
+                if (isCurrentlyWorking)
+                    return;
+                else
+                    isCurrentlyWorking = true;
+            }
+
+            await FetchParseAndDisplayMails();
+
+            lock (sync)
+            {
+                isCurrentlyWorking = false;
             }
         }
 
@@ -261,6 +288,8 @@ namespace DeliveryTimeShopify
             }
         }
 
+        #endregion
+
         #region Number Buttons
 
         private async void Button15_OnClick(object sender, EventArgs e)
@@ -317,7 +346,7 @@ namespace DeliveryTimeShopify
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is string str && string.IsNullOrEmpty(str))
+            if (value == null || (value is string str && string.IsNullOrEmpty(str)))
                 return new SolidColorBrush(Colors.Transparent);
 
             return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#AC58FA"));

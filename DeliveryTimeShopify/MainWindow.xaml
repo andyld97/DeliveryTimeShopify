@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DeliveryTimeShopify" xmlns:controls="clr-namespace:DeliveryTimeShopify.Controls"
-        mc:Ignorable="d" WindowStyle="None"
+        mc:Ignorable="d" WindowStyle="None" Loaded="Window_Loaded"
         Title="Bestellungen" Height="870" Width="280">
     <Grid>
         <Grid.Resources>
@@ -15,8 +15,8 @@
         </Grid.Resources>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="0.9*" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TextBlock x:Name="TextNoInvoices" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Green" Text="Aktuell sind keine Bestellungen vorhanden!" FontSize="23" />
@@ -68,10 +68,10 @@
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Grid Background="{Binding AdditionalNote, Converter={StaticResource stringToColorConverter}}">
+                    <Grid Grid.IsSharedSizeScope="True" Background="{Binding AdditionalNote, Converter={StaticResource stringToColorConverter}}">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" SharedSizeGroup="a"  />
+                            <ColumnDefinition Width="*" SharedSizeGroup="a" />
                         </Grid.ColumnDefinitions>
                         
                         <StackPanel Orientation="Horizontal">
