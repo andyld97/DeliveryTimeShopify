@@ -256,9 +256,9 @@ namespace DeliveryTimeShopify
 
         private void ListOrders_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ListOrders.SelectedItem != null && ListOrders.SelectedItem is Order inv)
+            if (ListOrders.SelectedItem != null && ListOrders.SelectedItem is OrderControl inv)
             {
-                TextAdditionalInvoiceInfo.Text = FormatNote(inv);
+                TextAdditionalInvoiceInfo.Text = FormatNote(inv.Order);
                 ButtonPanel.IsEnabled = true;
             }
             else
@@ -273,7 +273,7 @@ namespace DeliveryTimeShopify
             if (ListOrders.SelectedItem == null)
                 return;
 
-            var order = ListOrders.SelectedItem as Order;
+            var order = (ListOrders.SelectedItem as OrderControl)?.Order;
 
             // on successs
             lock (Orders)
