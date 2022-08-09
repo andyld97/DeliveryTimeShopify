@@ -1,6 +1,7 @@
 ﻿using DeliveryTimeShopify.Model;
 using MailKit.Net.Smtp;
 using MimeKit;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
 
@@ -74,6 +75,55 @@ namespace DeliveryTimeShopify.Helper
                 messageToSend.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Thunderbird/91.11.0");
 
                 await client.SendAsync(messageToSend);
+            }
+        }
+
+        public static Order ParseMail(string json)
+        {
+            try
+            {
+                var d = JObject.Parse(json);
+
+                Order order = new Order();
+                order.AdditionalNote = d["note"].Value<string>();
+                order.CreatedAt = DateTime.Parse($"{d["current_date"].Value<string>()} {d["current_time"]}");
+                order.Mail = d["email"].Value<string>();
+                order.Id = d["id"].Value<string>();
+                order.TotalPrice = d["total_price"].Value<string>();
+
+                bool requires_shipping = bool.Parse(d["requires_shipping"].Value<string>());
+                order.IsShipping = requires_shipping;
+
+                if (!requires_shipping)
+                    order.BillingAddress = new Address() { FirstName = d["customer.name"].Value<string>() };
+                else
+                {
+                    order.ShippingAdress = new Address()
+                    {
+                        FirstName = d["customer.name"].Value<string>(),
+                        StreetAndNr = d["shipping_address.street"].Value<string>(),
+                        City = d["shipping_address.city"].Value<string>(),
+                        Zip = d["shipping_address.zip"].Value<string>(),
+                    };
+                }
+
+                if (d.ContainsKey("skus"))
+                {
+                    string skus = d["skus"].Value<string>();
+
+                    foreach (var sku in skus.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if (int.TryParse(sku, out int skuNumber))
+                            order.SKUs.Add(skuNumber);
+                    }
+                }
+
+                return order;
+            }
+            catch
+            {
+                // ToDo: *** Log
+                return null;
             }
         }
 

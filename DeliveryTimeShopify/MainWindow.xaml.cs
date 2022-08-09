@@ -123,71 +123,31 @@ namespace DeliveryTimeShopify
                             }
 
                             string json = HttpUtility.HtmlDecode(node.InnerText).Trim();
+                            var order = MailHelper.ParseMail(json);
+                            if (order == null)
+                                continue;
 
-
-                            try
+                            // Check if this order should be added or not ...
+                            lock (Orders)
                             {
-                                var j = JObject.Parse(json);
-
-                                Order order = new Order();
-                                order.AdditionalNote = j["note"].Value<string>();
-                                order.CreatedAt = DateTime.Parse($"{j["current_date"].Value<string>()} {j["current_time"]}");
-                                order.Mail = j["email"].Value<string>();
-                                order.Id = j["id"].Value<string>();
-                                order.TotalPrice = j["total_price"].Value<string>();
-
-                                bool requires_shipping = bool.Parse(j["requires_shipping"].Value<string>());
-                                order.IsShipping = requires_shipping;
-
-                                if (!requires_shipping)
-                                    order.BillingAddress = new Address() { FirstName = j["customer.name"].Value<string>() };
-                                else
+                                if (!Orders.Any(p => p.Id == order.Id) && !FinishedIDs.Any(i => i == order.Id))
                                 {
-                                    order.ShippingAdress = new Address()
-                                    {
-                                        FirstName = j["customer.name"].Value<string>(),
-                                        StreetAndNr = j["shipping_address.street"].Value<string>(),
-                                        City = j["shipping_address.city"].Value<string>(),
-                                        Zip = j["shipping_address.zip"].Value<string>(),
-                                    };
+                                    var now = DateTime.Now;
+                                    if (order.CreatedAt.Day == now.Day)
+                                        Orders.Add(order);
                                 }
-
-                                if (j.ContainsKey("skus"))
-                                {
-                                    string skus = j["skus"].Value<string>();
-
-                                    foreach (var sku in skus.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries))
-                                    {
-                                        if (int.TryParse(sku, out int skuNumber))
-                                            order.SKUs.Add(skuNumber);
-                                    }
-                                }
-
-                                lock (Orders)
-                                {
-                                    if (!Orders.Any(p => p.Id == order.Id) && !FinishedIDs.Any(i => i == order.Id))
-                                    {
-                                        var now = DateTime.Now;
-                                        if (order.CreatedAt.Day == now.Day)
-                                            Orders.Add(order);
-                                    }
-                                }
-
-                                inbox.SetFlags(uid, MessageFlags.Deleted, true);
-                                exponge = true;
                             }
-                            catch
-                            {
-                                inbox.SetFlags(uid, MessageFlags.Deleted, true);
-                                exponge = true;
-                            }
+
+                            // ... but in anyway the mail can be marked as deleted now
+                            inbox.SetFlags(uid, MessageFlags.Deleted, true);
+                            exponge = true;
+
                         }
                     }
 
                     if (exponge)
                     {
                         inbox.Expunge();
-
 
                         // Order orders :)
                         lock (Orders)
@@ -205,35 +165,29 @@ namespace DeliveryTimeShopify
                 }
             }
             catch
-            { }
-        }
-
-        private void InvoiceController_InvoiceAddedOrUpdated(Model.Order invoice)
-        {
-            Refresh(); 
+            {
+                // ToDo: *** Log
+            }
         }
 
         private void Refresh()
-        {            
-            Dispatcher.Invoke(() =>
-            {
-                // Remember old selected item
-                string oldSelectedId = string.Empty;
-                if (ListOrders.SelectedItem is Order invoice)
-                    oldSelectedId = invoice.Id;
+        {
+            // Remember old selected item
+            string oldSelectedId = string.Empty;
+            if (ListOrders.SelectedItem is Order invoice)
+                oldSelectedId = invoice.Id;
 
-                // Assign item source
-                ListOrders.ItemsSource = null;
-                ListOrders.ItemsSource = Orders;
-                SetState(ListOrders.Items.Count > 0);
+            // Assign item source
+            ListOrders.ItemsSource = null;
+            ListOrders.ItemsSource = Orders;
+            SetState(ListOrders.Items.Count > 0);
 
-                // Re-assign old selected item (if necessary)
-                if (!string.IsNullOrEmpty(oldSelectedId) && Orders.Any(x => x.Id == oldSelectedId))
-                    ListOrders.SelectedItem = Orders.FirstOrDefault(x => x.Id == oldSelectedId);
+            // Re-assign old selected item (if necessary)
+            if (!string.IsNullOrEmpty(oldSelectedId) && Orders.Any(x => x.Id == oldSelectedId))
+                ListOrders.SelectedItem = Orders.FirstOrDefault(x => x.Id == oldSelectedId);
 
-                if (Orders.Count > 0)
-                    ListOrders.ScrollIntoView(ListOrders.Items[ListOrders.Items.Count - 1]);
-            });
+            if (Orders.Count > 0)
+                ListOrders.ScrollIntoView(ListOrders.Items[ListOrders.Items.Count - 1]);
         }
 
         private void SetState(bool state)
@@ -250,18 +204,18 @@ namespace DeliveryTimeShopify
             }
         }   
 
-        private string FormatNote(Order invoice)
+        private string FormatNote(Order order)
         {
-            if (string.IsNullOrEmpty(invoice.AdditionalNote) && string.IsNullOrEmpty(invoice.AdditionalShippingInfo))
+            if (string.IsNullOrEmpty(order.AdditionalNote) && string.IsNullOrEmpty(order.AdditionalShippingInfo))
                 return "Keine";
 
-            if (string.IsNullOrEmpty(invoice.AdditionalNote) && !string.IsNullOrEmpty(invoice.AdditionalShippingInfo))
-                return invoice.AdditionalShippingInfo;
+            if (string.IsNullOrEmpty(order.AdditionalNote) && !string.IsNullOrEmpty(order.AdditionalShippingInfo))
+                return order.AdditionalShippingInfo;
 
-            if (!string.IsNullOrEmpty(invoice.AdditionalNote) && string.IsNullOrEmpty(invoice.AdditionalShippingInfo))
-                return invoice.AdditionalNote;
+            if (!string.IsNullOrEmpty(order.AdditionalNote) && string.IsNullOrEmpty(order.AdditionalShippingInfo))
+                return order.AdditionalNote;
 
-            return $"{invoice.AdditionalNote}{Environment.NewLine}{invoice.AdditionalShippingInfo}";
+            return $"{order.AdditionalNote}{Environment.NewLine}{order.AdditionalShippingInfo}";
         }
 
         private void ListOrders_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -292,7 +246,6 @@ namespace DeliveryTimeShopify
                 Orders.Remove(order);
                 Refresh();
             }
-
 
             Dispatcher.Invoke(new Action(() =>
             {
