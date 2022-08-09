@@ -93,7 +93,7 @@ namespace DeliveryTimeShopify.Helper
             try
             {
                 var d = JObject.Parse(json);
-
+                Logger.LogInfo("Parsing order ...");
                 Order order = new Order();
                 order.AdditionalNote = d["note"].Value<string>();
                 order.CreatedAt = DateTime.Parse($"{d["current_date"].Value<string>()} {d["current_time"]}");
@@ -128,11 +128,12 @@ namespace DeliveryTimeShopify.Helper
                     }
                 }
 
+                Logger.LogInfo($"Found order \"{order.Id}\". IsShipping: {order.IsShipping}");
                 return order;
             }
-            catch
+            catch (Exception ex)
             {
-                // ToDo: *** Log
+                Logger.LogError("Failed to parse order", ex);
                 return null;
             }
         }

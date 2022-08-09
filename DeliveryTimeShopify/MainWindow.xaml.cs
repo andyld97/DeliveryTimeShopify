@@ -115,6 +115,8 @@ namespace DeliveryTimeShopify
 
                     if (Config.Instance.Filter.Any(f => subject.Contains(f.ToLower())))
                     {
+                        Logger.LogInfo("Found a new order ...");
+
                         string htmlContent = message.HtmlBody;
 
                         HtmlDocument htmlDocument = new HtmlDocument();
@@ -126,13 +128,17 @@ namespace DeliveryTimeShopify
                         {
                             inbox.SetFlags(uid, MessageFlags.Deleted, true);
                             exponge = true;
+                            Logger.LogError("Failed to parse order ...");
                             continue;
                         }
 
                         string json = HttpUtility.HtmlDecode(node.InnerText).Trim();
                         var order = MailHelper.ParseMail(json);
                         if (order == null)
+                        {
+                            Logger.LogError("Failed to parse order ...");
                             continue;
+                        }
 
                         // Check if this order should be added or not ...
                         lock (Orders)
