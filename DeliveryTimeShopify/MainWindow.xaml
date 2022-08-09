@@ -1,0 +1,174 @@
+﻿<Window x:Class="DeliveryTimeShopify.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DeliveryTimeShopify" xmlns:controls="clr-namespace:DeliveryTimeShopify.Controls"
+        mc:Ignorable="d" WindowStyle="None"
+        Title="Bestellungen" Height="870" Width="280">
+    <Grid>
+        <Grid.Resources>
+            <local:ImageConverter x:Key="imageConverter" />
+            <local:SKUConverter x:Key="skuConverter" />
+            <local:AlternationConverter x:Key="alternationConverter" />
+            <local:StringToColorConverter x:Key="stringToColorConverter" />
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.9*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="TextNoInvoices" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Green" Text="Aktuell sind keine Bestellungen vorhanden!" FontSize="23" />
+
+        <ListBox x:Name="ListOrders" HorizontalContentAlignment="Stretch" AlternationCount="2" SelectionChanged="ListOrders_SelectionChanged">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border Name="_Border"
+                                Padding="2"
+                                SnapsToDevicePixels="true">
+                                    <ContentPresenter />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsSelected" Value="false" />
+                                            <Condition Property="ItemsControl.AlternationIndex" Value="0" />
+                                        </MultiTrigger.Conditions>
+                                        <MultiTrigger.Setters>
+                                            <Setter TargetName="_Border" Property="Background" Value="White"/>
+                                        </MultiTrigger.Setters>
+                                    </MultiTrigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsSelected" Value="false" />
+                                            <Condition Property="ItemsControl.AlternationIndex" Value="1" />
+                                        </MultiTrigger.Conditions>
+                                        <MultiTrigger.Setters>
+                                            <Setter TargetName="_Border" Property="Background" Value="LightGray"/>
+                                        </MultiTrigger.Setters>
+                                    </MultiTrigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsSelected" Value="true" />
+                                        </MultiTrigger.Conditions>
+                                        <MultiTrigger.Setters>                                           
+                                            <Setter TargetName="_Border" Property="Background" Value="#FF0B1F73"/>
+                                            <Setter Property="Foreground" Value="White" />
+                                        </MultiTrigger.Setters>
+                                    </MultiTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Background="{Binding AdditionalNote, Converter={StaticResource stringToColorConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding ., Converter={StaticResource imageConverter}}" Width="24" Height="24" Margin="5" />
+                            <TextBlock Text="{Binding}" VerticalAlignment="Top" FontWeight="Bold" />
+                        </StackPanel>
+
+                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>                            
+                            
+                            <TextBlock Grid.Column="0" Margin="2,2,2,2" VerticalAlignment="Center">
+                                <Run Text="Datum:" FontWeight="Bold" />
+                                <LineBreak />
+                                <Run Text="Uhrzeit:" FontWeight="Bold" />
+                                <LineBreak />
+                                <Run Text="SKUs:" FontWeight="Bold" />
+                                <LineBreak />
+                                <Run Text="Preis:" FontWeight="Bold" />
+                            </TextBlock>
+
+                            <TextBlock Grid.Column="1" Margin="2,2,2,2" VerticalAlignment="Center">
+                                <Run Text="{Binding CreatedAt, StringFormat=dd.MM.yyyy}" FontStyle="Italic" />
+                                <LineBreak />
+                                <Run Text="{Binding CreatedAt, StringFormat=HH:mm}" FontStyle="Italic" />
+                                <Run Text="Uhr" />
+                                <LineBreak />
+                                <Run Text="{Binding ., Converter={StaticResource skuConverter}}" FontWeight="Bold" />
+                                <LineBreak />
+                                <Run Text="{Binding TotalPrice}" FontWeight="Bold" />
+                            </TextBlock>
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Grid Grid.Row="1" Margin="0,0,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel>
+                <StackPanel.Resources>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Margin" Value="2" />
+                    </Style>
+                </StackPanel.Resources>
+                <TextBlock Text="Lieferanweisungen:" FontSize="13" FontWeight="Bold" />
+                <TextBox x:Name="TextAdditionalInvoiceInfo" FontSize="14" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Margin="0,2,2,2" IsReadOnly="True" Height="100" />
+            </StackPanel>
+
+            <Border Grid.Row="1">
+                <Border.Background>
+                    <LinearGradientBrush>
+                        <GradientStop Color="#FF1B63F1" Offset="0.1" />
+                        <GradientStop Color="#FF6E0586" Offset="0.6" />
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <Viewbox x:Name="ButtonPanel" IsEnabled="False">
+                    <Grid>
+                        <Grid UseLayoutRounding="True" SnapsToDevicePixels="True" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Grid.Resources>
+                                <Style TargetType="{x:Type controls:TouchButton}">
+                                    <Setter Property="Margin" Value="10" />
+                                </Style>
+                            </Grid.Resources>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+
+                            <controls:TouchButton x:Name="Button15" Grid.Column="0" Grid.Row="0" OnClick="Button15_OnClick" Text="15m" />
+                            <controls:TouchButton x:Name="Button20" Grid.Column="1" Grid.Row="0" OnClick="Button20_OnClick" Text="20m" />
+                            <controls:TouchButton x:Name="Button25" Grid.Column="2" Grid.Row="0" OnClick="Button25_OnClick" Text="25m" />
+                            <controls:TouchButton x:Name="Button30" Grid.Column="0" Grid.Row="1" OnClick="Button30_OnClick" Text="30m" />
+                            <controls:TouchButton x:Name="Button45" Grid.Column="1" Grid.Row="1" OnClick="Button45_OnClick" Text="45m" />
+                            <controls:TouchButton x:Name="Button50" Grid.Column="2" Grid.Row="1" OnClick="Button50_OnClick" Text="50m" />
+                            <controls:TouchButton x:Name="Button60" Grid.Column="0" Grid.Row="2" OnClick="Button60_OnClick" Text="1h" />
+                            <controls:TouchButton x:Name="Button90" Grid.Column="1" Grid.Row="2" OnClick="Button90_OnClick" Text="1:30h" />
+                            <controls:TouchButton x:Name="Button120" Grid.Column="2" Grid.Row="2" OnClick="Button120_OnClick" Text="2h" />
+                        </Grid>
+                    </Grid>
+                </Viewbox>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
