@@ -1,30 +1,126 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace DeliveryTimeShopify.Model
 {
-    public class Order
+    public class Order : INotifyPropertyChanged
     {
-        public string Id { get; set; }
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        public string Mail { get; set; }
+        private string id, mail, totalPrice, additionalNote;
+        private bool isShipping;
+        private Address billingAddress, shippingAddress;
+        private DateTime createdAt;
 
-        public bool IsShipping { get; set; }
+        public string Id
+        {
+            get => id;
+            set
+            {
+                if (value != id)
+                {
+                    id = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
-        public Address BillingAddress { get; set; }
+        public string Mail
+        {
+            get => mail;
+            set
+            {
+                if (value != mail)
+                {
+                    mail = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
-        public Address ShippingAdress { get; set; }    
+        public bool IsShipping
+        {
+            get => isShipping;
+            set
+            {
+                if (value != isShipping)
+                {
+                    isShipping = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
-        public string TotalPrice { get; set; }
+        public Address BillingAddress
+        {
+            get => billingAddress;
+            set
+            {
+                if (value != billingAddress)
+                {
+                    billingAddress = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public Address ShippingAdress
+        {
+            get => shippingAddress;
+            set
+            {
+                if (value != shippingAddress)
+                {
+                    shippingAddress = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public string TotalPrice
+        {
+            get => totalPrice;
+            set
+            {
+                if (value != totalPrice)
+                {
+                    totalPrice = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         public List<int> SKUs { get; set; } = new List<int>();
 
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt
+        {
+            get => createdAt;
+            set
+            {
+                if (value != createdAt)
+                {
+                    createdAt = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
-        public string AdditionalShippingInfo { get; set; }
+        public string AdditionalNote
+        {
+            get => additionalNote;
+            set
+            {
+                if (value != additionalNote)
+                {
+                    additionalNote = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
-        public string AdditionalNote { get; set; }
 
         public override string ToString()
         {
@@ -32,6 +128,11 @@ namespace DeliveryTimeShopify.Model
                 return ShippingAdress?.ToString();
             else
                 return BillingAddress?.ToString();
+        }
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 

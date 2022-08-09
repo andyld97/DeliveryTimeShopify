@@ -21,7 +21,7 @@
 
         <TextBlock x:Name="TextNoInvoices" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Green" Text="Aktuell sind keine Bestellungen vorhanden!" FontSize="23" />
 
-        <ListBox x:Name="ListOrders" HorizontalContentAlignment="Stretch" AlternationCount="2" SelectionChanged="ListOrders_SelectionChanged">
+        <ListBox x:Name="ListOrders" Background="White" HorizontalContentAlignment="Stretch" SelectionChanged="ListOrders_SelectionChanged">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="Template">
@@ -55,9 +55,9 @@
                                         <MultiTrigger.Conditions>
                                             <Condition Property="IsSelected" Value="true" />
                                         </MultiTrigger.Conditions>
-                                        <MultiTrigger.Setters>                                           
+                                        <MultiTrigger.Setters>
                                             <Setter TargetName="_Border" Property="Background" Value="#FF0B1F73"/>
-                                            <Setter Property="Foreground" Value="White" />
+                                            <!--<Setter Property="Foreground" Value="White" />-->
                                         </MultiTrigger.Setters>
                                     </MultiTrigger>
                                 </ControlTemplate.Triggers>
@@ -66,49 +66,6 @@
                     </Setter>
                 </Style>
             </ListBox.ItemContainerStyle>
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid Grid.IsSharedSizeScope="True" Background="{Binding AdditionalNote, Converter={StaticResource stringToColorConverter}}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" SharedSizeGroup="a"  />
-                            <ColumnDefinition Width="*" SharedSizeGroup="a" />
-                        </Grid.ColumnDefinitions>
-                        
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="{Binding ., Converter={StaticResource imageConverter}}" Width="24" Height="24" Margin="5" />
-                            <TextBlock Text="{Binding}" VerticalAlignment="Top" FontWeight="Bold" />
-                        </StackPanel>
-
-                        <Grid Grid.Column="1" VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>                            
-                            
-                            <TextBlock Grid.Column="0" Margin="2,2,2,2" VerticalAlignment="Center">
-                                <Run Text="Datum:" FontWeight="Bold" />
-                                <LineBreak />
-                                <Run Text="Uhrzeit:" FontWeight="Bold" />
-                                <LineBreak />
-                                <Run Text="SKUs:" FontWeight="Bold" />
-                                <LineBreak />
-                                <Run Text="Preis:" FontWeight="Bold" />
-                            </TextBlock>
-
-                            <TextBlock Grid.Column="1" Margin="2,2,2,2" VerticalAlignment="Center">
-                                <Run Text="{Binding CreatedAt, StringFormat=dd.MM.yyyy}" FontStyle="Italic" />
-                                <LineBreak />
-                                <Run Text="{Binding CreatedAt, StringFormat=HH:mm}" FontStyle="Italic" />
-                                <Run Text="Uhr" />
-                                <LineBreak />
-                                <Run Text="{Binding ., Converter={StaticResource skuConverter}}" FontWeight="Bold" />
-                                <LineBreak />
-                                <Run Text="{Binding TotalPrice}" FontWeight="Bold" />
-                            </TextBlock>
-                        </Grid>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
         </ListBox>
 
         <Grid Grid.Row="1" Margin="0,0,0,0">
@@ -124,7 +81,7 @@
                     </Style>
                 </StackPanel.Resources>
                 <TextBlock Text="Lieferanweisungen:" FontSize="13" FontWeight="Bold" />
-                <TextBox x:Name="TextAdditionalInvoiceInfo" FontSize="14" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Margin="0,2,2,2" IsReadOnly="True" Height="100" />
+                <TextBox x:Name="TextAdditionalInvoiceInfo" FontSize="14" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" TextWrapping="Wrap" Margin="0,2,2,2" IsReadOnly="True" Height="100" />
             </StackPanel>
 
             <Border Grid.Row="1">

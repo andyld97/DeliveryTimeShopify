@@ -16,6 +16,7 @@ using System.Web;
 using DeliveryTimeShopify.Model;
 using System.Collections.Generic;
 using DeliveryTimeShopify.Helper;
+using DeliveryTimeShopify.Controls;
 
 namespace DeliveryTimeShopify
 {
@@ -47,13 +48,14 @@ namespace DeliveryTimeShopify
             // Sample data for testing
             var now = DateTime.Now;
             List<Order> temp = new List<Order>();
-            temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Max Mustermann" }, AdditionalNote = "", IsShipping = false, CreatedAt = now });
-            temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Marlene Musterfrau" }, AdditionalNote = "", IsShipping = false, CreatedAt = now.AddMinutes(-10) });
-            temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Dieter XYZ" }, AdditionalNote = "", IsShipping = false, CreatedAt = now.AddMinutes(-20) });
-            
+            temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Max", LastName = "Mustermann", City = "Hamm", StreetAndNr = "In the Sky 123", Zip = "666" }, TotalPrice = "10,00€", AdditionalNote = "2", IsShipping = false, CreatedAt = now, SKUs = new List<int>() { 10, 12, 14 } });
+            temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Max", LastName = "Mustermann", City = "Hamm", StreetAndNr = "In the Sky 123", Zip = "666" }, TotalPrice = "10,00€", AdditionalNote = "3", IsShipping = false, CreatedAt = now, SKUs = new List<int>() { 10, 12, 14 } });
+            temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Max", LastName = "Mustermann", City = "Hamm", StreetAndNr = "In the Sky 123", Zip = "666" }, TotalPrice = "10,00€", AdditionalNote = "", IsShipping = false, CreatedAt = now, SKUs = new List<int>() { 10, 12, 14 } });
+            temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Maximilian", LastName = "Mustermann BBC", City = "Hamm", StreetAndNr = "In the Sky 123", Zip = "666" }, TotalPrice = "10,00€", AdditionalNote = "", IsShipping = true, CreatedAt = now, SKUs = new List<int>() { 10, 12, 14,4,4,4,4,4,4,4 } });
+
             temp = temp.OrderBy(p => p.CreatedAt).ToList();
-            temp.Add(new Order() { ShippingAdress = new Address() { FirstName = "Max Mustermann" }, AdditionalNote = "A note 1", IsShipping = true, CreatedAt = now.AddHours(-1) });
-            temp.Add(new Order() { ShippingAdress = new Address() { FirstName = "Marlene Musterfrau" }, AdditionalNote = "A note 2", IsShipping = true, CreatedAt = now.AddHours(-2) });
+            // temp.Add(new Order() { ShippingAdress = new Address() { FirstName = "Max Mustermann" }, AdditionalNote = "A note 1", IsShipping = true, CreatedAt = now.AddHours(-1) });
+            // temp.Add(new Order() { ShippingAdress = new Address() { FirstName = "Marlene Musterfrau" }, AdditionalNote = "A note 2", IsShipping = true, CreatedAt = now.AddHours(-2) });
 
             Orders.AddRange(temp);
             Refresh();
@@ -158,8 +160,8 @@ namespace DeliveryTimeShopify
                     var ordersWithoutNode = Orders.Where(p => !string.IsNullOrEmpty(p.AdditionalNote)).OrderBy(p => p.CreatedAt).ToList();
 
                     Orders.Clear();
-                    Orders.AddRange(oderedOrders);
                     Orders.AddRange(ordersWithoutNode);
+                    Orders.AddRange(oderedOrders);
                     Dispatcher.Invoke(() => Refresh());
                 }
             }
@@ -202,16 +204,15 @@ namespace DeliveryTimeShopify
                 oldSelectedId = invoice.Id;
 
             // Assign item source
-            ListOrders.ItemsSource = null;
-            ListOrders.ItemsSource = Orders;
+            ListOrders.Items.Clear();
+            foreach (var order in Orders)
+                ListOrders.Items.Add(new OrderControl(order));
+
             SetState(ListOrders.Items.Count > 0);
 
             // Re-assign old selected item (if necessary)
             if (!string.IsNullOrEmpty(oldSelectedId) && Orders.Any(x => x.Id == oldSelectedId))
                 ListOrders.SelectedItem = Orders.FirstOrDefault(x => x.Id == oldSelectedId);
-
-            if (Orders.Count > 0)
-                ListOrders.ScrollIntoView(ListOrders.Items[ListOrders.Items.Count - 1]);
         }
 
         private void SetState(bool state)
@@ -230,16 +231,10 @@ namespace DeliveryTimeShopify
 
         private string FormatNote(Order order)
         {
-            if (string.IsNullOrEmpty(order.AdditionalNote) && string.IsNullOrEmpty(order.AdditionalShippingInfo))
+            if (string.IsNullOrEmpty(order.AdditionalNote))
                 return "Keine";
 
-            if (string.IsNullOrEmpty(order.AdditionalNote) && !string.IsNullOrEmpty(order.AdditionalShippingInfo))
-                return order.AdditionalShippingInfo;
-
-            if (!string.IsNullOrEmpty(order.AdditionalNote) && string.IsNullOrEmpty(order.AdditionalShippingInfo))
-                return order.AdditionalNote;
-
-            return $"{order.AdditionalNote}{Environment.NewLine}{order.AdditionalShippingInfo}";
+            return order.AdditionalNote;
         }
 
         private void ListOrders_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -402,8 +397,8 @@ namespace DeliveryTimeShopify
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is int i && (i % 2 != 0))
-                return new SolidColorBrush(Colors.LightGray);
+         // if (value is int i && (i % 2 != 0))
+           //     return new SolidColorBrush(Colors.LightGray);
 
             return new SolidColorBrush(Colors.White);
         }
