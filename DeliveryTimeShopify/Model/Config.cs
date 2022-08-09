@@ -20,6 +20,9 @@ namespace DeliveryTimeShopify.Model
         [JsonPropertyName("filter")]
         public List<string> Filter { get; set; } = new List<string>();
 
+        [JsonPropertyName("webhook_url")]
+        public string WebHookUrl { get; set; }
+
         [JsonIgnore]
         public bool IsConfigValid => IngoingMailAuth != null && OutgoingMailAuth != null &&
                                      IngoingMailAuth.IsValid && OutgoingMailAuth.IsValid &&
@@ -38,6 +41,7 @@ namespace DeliveryTimeShopify.Model
 
                 result.OutgoingMailAuth = OutgoingMailAuth.FromJsonElement(configDocument.RootElement.GetProperty("outgoing_mail_auth"));
                 result.IngoingMailAuth = IngoingMailAuth.FromJsonElement(configDocument.RootElement.GetProperty("ingoing_mail_auth"));
+                result.WebHookUrl = configDocument.RootElement.GetProperty("webhook_url").GetString();
 
                 return result;
             }

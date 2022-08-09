@@ -9,6 +9,13 @@ namespace DeliveryTimeShopify.Helper
 {
     public static class MailHelper
     {
+        /// <summary>
+        /// TODO: TRANLSATE!!!!
+        /// </summary>
+        /// <param name="timeSpan"></param>
+        /// <param name="order"></param>
+        /// <param name="outgoingMailAuth"></param>
+        /// <returns></returns>
         public static async Task SendMailAsync(TimeSpan timeSpan, Order order, OutgoingMailAuth outgoingMailAuth)
         {
             var stream = typeof(Order).Assembly.GetManifestResourceStream("DeliveryTimeShopify.resources.template.message.html");
@@ -67,14 +74,17 @@ namespace DeliveryTimeShopify.Helper
 #if DEBUG
                 messageToSend.To.Add(new MailboxAddress("Floris John", "floris.john97@yahoo.de"));
                 messageToSend.To.Add(new MailboxAddress("Andreas Leopold", "andreasleopold97@gmail.com"));
+
 #else
-                messageToSend.To.Add(new MailboxAddress((invoice.IsShipping ? invoice.ShippingAdress.FullName : invoice.BillingAddress.FullName), invoice.Mail));
+                messageToSend.To.Add(new MailboxAddress((order.IsShipping ? order.ShippingAdress.FullName : order.BillingAddress.FullName), order.Mail));                
 #endif
 
                 messageToSend.From.Add(new MailboxAddress(outgoingMailAuth.DisplayName, outgoingMailAuth.MailAddress));
                 messageToSend.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Thunderbird/91.11.0");
 
+                Logger.LogInfo($"Sending e-mail \"{messageSubject}\" to \"{order.Mail}\" ...");
                 await client.SendAsync(messageToSend);
+                Logger.LogInfo("Done!");
             }
         }
 

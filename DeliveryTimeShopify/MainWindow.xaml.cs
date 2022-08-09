@@ -13,7 +13,6 @@ using System.Windows.Threading;
 using MailKit.Search;
 using HtmlAgilityPack;
 using System.Web;
-using Newtonsoft.Json.Linq;
 using DeliveryTimeShopify.Model;
 using System.Collections.Generic;
 using DeliveryTimeShopify.Helper;
@@ -31,6 +30,7 @@ namespace DeliveryTimeShopify
         private static IMailFolder inbox;
 
         private static object sync = new object();
+        private static readonly string JSON_XPATH = "/html[1]/body[1]/div[1]";
 
         public static readonly List<Order> Orders = new List<Order>();
         public static readonly List<string> FinishedIDs = new List<string>();
@@ -65,17 +65,17 @@ namespace DeliveryTimeShopify
         }
 
         private async void DispatcherTimer_Tick(object? sender, EventArgs e)
-        {           
+        {
             try
             {
                 lock (sync)
                 {
-                    // Logger.LogInfo(Properties.Resources.strLookingForUnreadMails);
+                    Logger.LogInfo(Properties.Resources.strLookingForUnreadMails);
                     bool found = false;
 
                     if (!client.IsAuthenticated || !client.IsConnected)
                     {
-                        //   Logger.LogWarning(Properties.Resources.strMailClientIsNotConnectedAnymore);
+                        Logger.LogWarning(Properties.Resources.strMailClientIsNotConnectedAnymore);
 
                         try
                         {
@@ -86,16 +86,14 @@ namespace DeliveryTimeShopify
                             // The Inbox folder is always available on all IMAP servers...
                             inbox = client.Inbox;
 
-                            // Logger.LogInfo(Properties.Resources.strConnectionEstablishedSuccess, sendWebHook: true);
+                            Logger.LogInfo(Properties.Resources.strConnectionEstablishedSuccess, sendWebHook: true);
                         }
                         catch (Exception ex)
                         {
-                            //Logger.LogError(Properties.Resources.strFailedToConnect, ex);
+                            Logger.LogError(Properties.Resources.strFailedToConnect, ex);
                             return;
                         }
-
                     }
-
 
                     inbox.Open(FolderAccess.ReadWrite);
 
@@ -113,7 +111,7 @@ namespace DeliveryTimeShopify
                             HtmlDocument htmlDocument = new HtmlDocument();
                             htmlDocument.LoadHtml(htmlContent);
 
-                            var node = htmlDocument.DocumentNode.SelectNodes("/html[1]/body[1]/div[1]").FirstOrDefault();
+                            var node = htmlDocument.DocumentNode.SelectNodes(JSON_XPATH).FirstOrDefault();
 
                             if (node == null)
                             {
@@ -141,7 +139,6 @@ namespace DeliveryTimeShopify
                             // ... but in anyway the mail can be marked as deleted now
                             inbox.SetFlags(uid, MessageFlags.Deleted, true);
                             exponge = true;
-
                         }
                     }
 
@@ -159,14 +156,14 @@ namespace DeliveryTimeShopify
                             Orders.AddRange(oderedOrders);
                             Orders.AddRange(ordersWithoutNode);
                         }
-                        
+
                         Refresh();
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // ToDo: *** Log
+                Logger.LogError("Failed to get e-mails", ex);
             }
         }
 
@@ -260,8 +257,7 @@ namespace DeliveryTimeShopify
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Fehler beim Senden der E-Mail: {ex.Message}", "Fehler!", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                Logger.LogError("Fehler beim Senden der E-Mail!", ex);
             }
         }
 
