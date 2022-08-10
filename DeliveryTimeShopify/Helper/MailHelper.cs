@@ -95,7 +95,7 @@ namespace DeliveryTimeShopify.Helper
                 var d = JObject.Parse(json);
                 Logger.LogInfo("Parsing order ...");
                 Order order = new Order();
-                order.AdditionalNote = d["note"].Value<string>();
+                order.AdditionalNote = d["note"].Value<string>()?.Trim();
                 order.CreatedAt = DateTime.Parse($"{d["current_date"].Value<string>()} {d["current_time"]}");
                 order.Mail = d["email"].Value<string>();
                 order.Id = d["id"].Value<string>();
