@@ -298,6 +298,7 @@ namespace DeliveryTimeShopify
 
             try
             {
+                Logger.LogInfo($"Die Bestellung \"{order.Id}\" wurde mit der Zeit \"{minutes}\" Minuten bestätigt, die Mail wird nun versendet ...");
                 await MailHelper.SendMailAsync(TimeSpan.FromMinutes(minutes), order, Config.Instance.OutgoingMailAuth).ConfigureAwait(false);
             }
             catch (Exception ex)
