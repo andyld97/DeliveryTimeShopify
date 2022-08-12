@@ -78,7 +78,7 @@ namespace DeliveryTimeShopify.Helper
                 messageToSend.To.Add(new MailboxAddress("Andreas Leopold", "andreasleopold97@gmail.com"));
 
 #else
-                messageToSend.To.Add(new MailboxAddress((order.IsShipping ? order.ShippingAdress.FullName : order.BillingAddress.FullName), order.Mail));                
+                messageToSend.To.Add(new MailboxAddress((order.IsShipping ? order.ShippingAddress.FullName : order.BillingAddress.FullName), order.Mail));                
 #endif
 
                 messageToSend.From.Add(new MailboxAddress(outgoingMailAuth.DisplayName, outgoingMailAuth.MailAddress));
