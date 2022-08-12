@@ -67,7 +67,7 @@ namespace DeliveryTimeShopify.Model
             }
         }
 
-        public Address ShippingAdress
+        public Address ShippingAddress
         {
             get => shippingAddress;
             set
@@ -125,7 +125,7 @@ namespace DeliveryTimeShopify.Model
         public override string ToString()
         {
             if (IsShipping)
-                return ShippingAdress?.ToString();
+                return ShippingAddress?.ToString();
             else
                 return BillingAddress?.ToString();
         }

@@ -108,7 +108,7 @@ namespace DeliveryTimeShopify.Helper
                     order.BillingAddress = new Address() { FirstName = d["customer.name"].Value<string>() };
                 else
                 {
-                    order.ShippingAdress = new Address()
+                    order.ShippingAddress = new Address()
                     {
                         FirstName = d["customer.name"].Value<string>(),
                         StreetAndNr = d["shipping_address.street"].Value<string>(),

@@ -49,7 +49,7 @@ namespace DeliveryTimeShopify
             var now = DateTime.Now;
             List<Order> temp = new List<Order>();
             temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Max", LastName = "Mustermann", City = "Hamm", StreetAndNr = "In the Sky 123", Zip = "666" }, TotalPrice = "10,00€", AdditionalNote = "", IsShipping = false, CreatedAt = now, SKUs = new List<int>() { 10, 12, 14 } });
-            temp.Add(new Order() { ShippingAdress = new Address() { FirstName = "Maximilian", LastName = "Mustermann BBC", City = "Hamm", StreetAndNr = "In the Sky 123", Zip = "666" }, TotalPrice = "10,00€", AdditionalNote = "", IsShipping = true, CreatedAt = now, SKUs = new List<int>() { 10, 12, 14,4,4,4,4,4,4,4 } });
+            temp.Add(new Order() { ShippingAddress = new Address() { FirstName = "Maximilian", LastName = "Mustermann BBC", City = "Hamm", StreetAndNr = "In the Sky 123", Zip = "666" }, TotalPrice = "10,00€", AdditionalNote = "", IsShipping = true, CreatedAt = now, SKUs = new List<int>() { 10, 12, 14,4,4,4,4,4,4,4 } });
             temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Max", LastName = "Mustermann", City = "Hamm", StreetAndNr = "In the Sky 123", Zip = "666" }, TotalPrice = "20,00€", AdditionalNote = "2", IsShipping = false, CreatedAt = now, SKUs = new List<int>() { 10, 12, 14 } });
             temp.Add(new Order() { BillingAddress = new Address() { FirstName = "Max", LastName = "Mustermann", City = "Hamm", StreetAndNr = "In the Sky 123", Zip = "666" }, TotalPrice = "20,00€", AdditionalNote = "3", IsShipping = false, CreatedAt = now, SKUs = new List<int>() { 10, 12, 14 } });
 
