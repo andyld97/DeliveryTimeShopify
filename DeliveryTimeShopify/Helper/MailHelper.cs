@@ -3,6 +3,8 @@ using MailKit.Net.Smtp;
 using MimeKit;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace DeliveryTimeShopify.Helper
@@ -135,6 +137,40 @@ namespace DeliveryTimeShopify.Helper
             {
                 Logger.LogError("Failed to parse order", ex);
                 return null;
+            }
+        }
+
+        public static async Task SendToUrlAsync(Order order)
+        {
+            try
+            {
+                Logger.LogInfo("Sending infos to database ...");
+                var address = (order.IsShipping ? order.ShippingAddress : order.BillingAddress);
+                using (HttpClient client = new HttpClient())
+                {
+                    var values = new Dictionary<string, string>
+                    {
+                        { "CreatedAt", order.CreatedAt.ToString("yyyy-MM-dd HH:mm") },
+                        { "TotalPrice", order.TotalPrice },
+                        { "Id", order.Id },
+                        { "IsShipping", order.IsShipping ? "1" : "0" },
+                        { "Mail", order.Mail },
+                        { "City", address.City },
+                        { "FirstName", address.FirstName },
+                        { "LastName", address.LastName },
+                        { "StreetAndNr", address.StreetAndNr },
+                        { "Zip", address.Zip }
+                    };
+
+                    var content = new FormUrlEncodedContent(values);
+                    var result = await client.PostAsync(Config.Instance.DatabaseUrl, content);
+                    //var y = result.Content.ReadAsStringAsync();
+                    Logger.LogInfo("Successfully sent infos to database!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("Failed to send to database!", ex);
             }
         }
 

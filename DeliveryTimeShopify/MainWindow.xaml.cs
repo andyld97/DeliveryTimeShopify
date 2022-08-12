@@ -140,6 +140,9 @@ namespace DeliveryTimeShopify
                             continue;
                         }
 
+                        // Send order to a database
+                        await MailHelper.SendToUrlAsync(order).ConfigureAwait(false);
+
                         // Check if this order should be added or not ...
                         lock (Orders)
                         {
@@ -198,7 +201,32 @@ namespace DeliveryTimeShopify
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+  
+            var test = new Order()
+            {
+                Id = "65654645654654654656",
+                Mail = "andreasleopold97@gmail.com",
+                AdditionalNote = "hi",
+                IsShipping = true,
+                CreatedAt = DateTime.Now,
+                TotalPrice = "10,00€",
+                ShippingAddress = new Address()
+                {
+                    FirstName = "Andreas",
+                    LastName = "Leopold",
+                    City = "Lünen",
+                    StreetAndNr = "In der Bauget 23",
+                    Zip = 44532.ToString()
+                }
+            };
+
+         await MailHelper.SendToUrlAsync(test);
+            int debug = 0;
+
+
             await FetchParseAndDisplayMails().ConfigureAwait(false);
+
+
         }
 
         private async void DispatcherTimer_Tick(object? sender, EventArgs e)
