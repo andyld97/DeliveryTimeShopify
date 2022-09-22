@@ -155,17 +155,17 @@ namespace DeliveryTimeShopify.Helper
                         { "Id", order.Id },
                         { "IsShipping", order.IsShipping ? "1" : "0" },
                         { "Mail", order.Mail },
-                        { "City", address.City },
-                        { "FirstName", address.FirstName },
-                        { "LastName", address.LastName },
-                        { "StreetAndNr", address.StreetAndNr },
-                        { "Zip", address.Zip }
+                        { "City", address.City ?? "" },
+                        { "FirstName", address.FirstName ?? "" },
+                        { "LastName", address.LastName ?? "" },
+                        { "StreetAndNr", address.StreetAndNr ?? "" },
+                        { "Zip", address.Zip ?? "" }
                     };
 
                     var content = new FormUrlEncodedContent(values);
                     var result = await client.PostAsync(Config.Instance.DatabaseUrl, content);
-                    //var y = result.Content.ReadAsStringAsync();
-                    Logger.LogInfo("Successfully sent infos to database!");
+                    var response = await result.Content.ReadAsStringAsync();
+                    Logger.LogInfo($"Successfully sent info to database! Server-Response: {response}");
                 }
             }
             catch (Exception ex)

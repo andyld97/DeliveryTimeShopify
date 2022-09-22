@@ -81,7 +81,9 @@
                     </Style>
                 </StackPanel.Resources>
                 <TextBlock Text="Lieferanweisungen:" FontSize="13" FontWeight="Bold" />
-                <TextBox x:Name="TextAdditionalInvoiceInfo" FontSize="14" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" TextWrapping="Wrap" Margin="0,2,2,2" IsReadOnly="True" Height="100" />
+                <TextBox x:Name="TextAdditionalInvoiceInfo" FontSize="14" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" TextWrapping="Wrap" Margin="0,2,2,2" IsReadOnly="True" Height="80" />
+
+                <Button x:Name="ButtonDeleteEntry" Click="ButtonDeleteEntry_Click" Content="Eintrag löschen" FontWeight="Bold" Margin="5" Padding="2" />
             </StackPanel>
 
             <Border Grid.Row="1">

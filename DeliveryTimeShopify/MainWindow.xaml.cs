@@ -359,6 +359,20 @@ namespace DeliveryTimeShopify
             await HandlePanelInputAsync(120);
         }
 
+        private void ButtonDeleteEntry_Click(object sender, RoutedEventArgs e)
+        {
+            if (ListOrders.SelectedItem == null)
+                return;
+
+            var order = (ListOrders.SelectedItem as OrderControl)?.Order;
+
+            lock (Orders)
+            {
+                FinishedIDs.Add(order.Id);
+                Orders.Remove(order);
+                Refresh();
+            }
+        }
         #endregion
     }
 
