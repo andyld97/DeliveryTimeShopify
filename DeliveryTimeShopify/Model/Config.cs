@@ -26,6 +26,9 @@ namespace DeliveryTimeShopify.Model
         [JsonPropertyName("database_url")]
         public string DatabaseUrl { get; set; }
 
+        [JsonPropertyName("save_window_size_and_position")]
+        public bool SaveWindowSizeAndPosition { get; set; } = false;
+
         [JsonIgnore]
         public bool IsConfigValid => IngoingMailAuth != null && OutgoingMailAuth != null &&
                                      IngoingMailAuth.IsValid && OutgoingMailAuth.IsValid &&
@@ -46,6 +49,9 @@ namespace DeliveryTimeShopify.Model
                 result.IngoingMailAuth = IngoingMailAuth.FromJsonElement(configDocument.RootElement.GetProperty("ingoing_mail_auth"));
                 result.WebHookUrl = configDocument.RootElement.GetProperty("webhook_url").GetString();
                 result.DatabaseUrl = configDocument.RootElement.GetProperty("database_url").GetString();
+
+                if (configDocument.RootElement.TryGetProperty("save_window_size_and_position", out _))
+                    result.SaveWindowSizeAndPosition = configDocument.RootElement.GetProperty("save_window_size_and_position").GetBoolean();
 
                 return result;
             }

@@ -39,6 +39,8 @@ namespace DeliveryTimeShopify
         private bool wasConnectedAlready = false;
         private bool isCurrentlyWorking = false;
 
+        private static string settingsPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings");
+
         public MainWindow()
         {
             InitializeComponent();
@@ -61,6 +63,7 @@ namespace DeliveryTimeShopify
             Refresh();
 #endif
 
+
             dispatcherTimer.Interval = TimeSpan.FromSeconds(60);
             dispatcherTimer.Tick += DispatcherTimer_Tick;
             dispatcherTimer.Start();             
@@ -70,6 +73,49 @@ namespace DeliveryTimeShopify
             Top = 0;
             Left = (WpfScreen.Primary.WorkingArea.Width / dpi.DpiScaleX) - Width;
             Height = WpfScreen.Primary.WorkingArea.Height / dpi.DpiScaleY;
+
+            if (Config.Instance.SaveWindowSizeAndPosition)
+            {
+                if (System.IO.File.Exists(settingsPath))
+                {
+                    try
+                    {
+                        string value = System.IO.File.ReadAllText(settingsPath);
+                        if (!string.IsNullOrEmpty(value) && value.Contains(";"))
+                        {
+                            string[] wh = value.Split(";", StringSplitOptions.RemoveEmptyEntries);
+                            if (wh.Length >= 4 && double.TryParse(wh[0], out double x) && double.TryParse(wh[1], out double y) && double.TryParse(wh[2], out double w) && double.TryParse(wh[3], out double h))
+                            {
+                                Left = x;
+                                Top = y;
+                                Width = w;
+                                Height = h;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                SizeChanged += MainWindow_SizeChanged;
+            }
+        }
+
+        private async void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (!Config.Instance.SaveWindowSizeAndPosition)
+                return;
+
+            try
+            {
+                await System.IO.File.WriteAllTextAsync(settingsPath, $"{Left};{Top};{ActualWidth};{ActualHeight}");
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private async Task FetchParseAndDisplayMails()
