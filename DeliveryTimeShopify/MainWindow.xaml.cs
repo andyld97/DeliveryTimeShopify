@@ -17,6 +17,7 @@ using DeliveryTimeShopify.Model;
 using System.Collections.Generic;
 using DeliveryTimeShopify.Helper;
 using DeliveryTimeShopify.Controls;
+using System.ComponentModel;
 
 namespace DeliveryTimeShopify
 {
@@ -403,6 +404,11 @@ namespace DeliveryTimeShopify
         private async void Button120_OnClick(object sender, EventArgs e)
         {
             await HandlePanelInputAsync(120);
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            e.Cancel = true;
         }
 
         private void ButtonDeleteEntry_Click(object sender, RoutedEventArgs e)
